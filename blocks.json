@@ -1,0 +1,20 @@
+{
+  "blocks": [
+    {
+      "id": "block_1_small",
+      "planes": { "x_min": -1, "x_max": 1, "y_min": -1, "y_max": 1, "z_min": 5, "z_max": 7 }
+    },
+    {
+      "id": "block_2_large",
+      "planes": { "x_min": -3, "x_max": 3, "y_min": -3, "y_max": 3, "z_min": 10, "z_max": 16 }
+    },
+    {
+      "id": "block_3_tall",
+      "planes": { "x_min": 5, "x_max": 7, "y_min": -5, "y_max": 5, "z_min": 8, "z_max": 10 }
+    },
+    {
+      "id": "block_4_wide",
+      "planes": { "x_min": -8, "x_max": -4, "y_min": -1, "y_max": 1, "z_min": 12, "z_max": 14 }
+    }
+  ]
+}

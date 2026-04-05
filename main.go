@@ -7,7 +7,9 @@ import (
 )
 
 func main() {
-	blocks, err := LoadBlocks("blocks.json")
+	config := DefaultConfig()
+
+	blocks, err := LoadBlocks(config.SceneFile)
 
 	var camera Camera
 
@@ -15,11 +17,11 @@ func main() {
 		log.Fatalf("Error loading blocks: %v", err)
 	}
 
-	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowSize(config.ScreenWidth, config.ScreenHeight)
 
 	ebiten.SetWindowTitle("Virtual Camera")
 
-	if err := ebiten.RunGame(newGame(blocks, camera)); err != nil {
+	if err := ebiten.RunGame(newGame(blocks, camera, config)); err != nil {
 		log.Fatal(err)
 	}
 }

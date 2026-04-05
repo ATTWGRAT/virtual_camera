@@ -11,9 +11,9 @@ type Point2D struct {
 	X, Y float32
 }
 
-func ClipLine(v1, v2 Vector4) (Vector4, Vector4, bool) {
+func ClipLine(v1, v2 Vector4, nearPlane, farPlane float32) (Vector4, Vector4, bool) {
 	// If both points are entirely behind the near plane or beyond the far plane, drop the line.
-	if (v1.Z < near && v2.Z < near) || (v1.Z > far && v2.Z > far) {
+	if (v1.Z < nearPlane && v2.Z < nearPlane) || (v1.Z > farPlane && v2.Z > farPlane) {
 		return v1, v2, false
 	}
 
@@ -29,33 +29,27 @@ func ClipLine(v1, v2 Vector4) (Vector4, Vector4, bool) {
 	}
 
 	// 1. Clip against the Near Plane
-	if v1.Z < near {
-		v1 = interpolate(v1, v2, near)
-	} else if v2.Z < near {
-		v2 = interpolate(v1, v2, near)
+	if v1.Z < nearPlane {
+		v1 = interpolate(v1, v2, nearPlane)
+	} else if v2.Z < nearPlane {
+		v2 = interpolate(v1, v2, nearPlane)
 	}
 
 	// 2. Clip against the Far Plane
-	if v1.Z > far {
-		v1 = interpolate(v1, v2, far)
-	} else if v2.Z > far {
-		v2 = interpolate(v1, v2, far)
+	if v1.Z > farPlane {
+		v1 = interpolate(v1, v2, farPlane)
+	} else if v2.Z > farPlane {
+		v2 = interpolate(v1, v2, farPlane)
 	}
 
 	return v1, v2, true
 }
 
-func drawCameraFrame(g *Game, screen *ebiten.Image) {
-	tMat := CreateTranslationMatrix(-g.Camera.X, -g.Camera.Y, -g.Camera.Z)
-	pMat := CreatePitchMatrix(-g.Camera.Pitch)
-	yMat := CreateYawMatrix(-g.Camera.Yaw)
-	rMat := CreateRollMatrix(-g.Camera.Roll)
+func drawCameraFrame(blocks []Block, renderState RenderState, config Config, screen *ebiten.Image) {
+	viewMatrix := renderState.ViewMatrix
+	projection := renderState.ProjectionMatrix
 
-	// 2. Combine them (Order: Roll * Pitch * Yaw * Translation)
-	// This order ensures we rotate around the camera's local origin
-	viewMatrix := MultiplyMatrices(rMat, MultiplyMatrices(pMat, MultiplyMatrices(yMat, tMat)))
-
-	for _, block := range g.Blocks {
+	for _, block := range blocks {
 		for _, edge := range block.Edges {
 			v1 := block.Vertices[edge.Start]
 			v2 := block.Vertices[edge.End]
@@ -63,21 +57,21 @@ func drawCameraFrame(g *Game, screen *ebiten.Image) {
 			v1 = MultiplyMatrixVector(viewMatrix, v1)
 			v2 = MultiplyMatrixVector(viewMatrix, v2)
 
-			v1, v2, visible := ClipLine(v1, v2)
+			v1, v2, visible := ClipLine(v1, v2, config.NearPlane, config.FarPlane)
 			if !visible {
 				continue
 			}
 
-			p1 := MultiplyMatrixVector(g.ProjectionMatrix, v1)
-			p2 := MultiplyMatrixVector(g.ProjectionMatrix, v2)
+			p1 := MultiplyMatrixVector(projection, v1)
+			p2 := MultiplyMatrixVector(projection, v2)
 
 			ndcP1 := Point2D{X: p1.X / p1.W, Y: p1.Y / p1.W}
 			ndcP2 := Point2D{X: p2.X / p2.W, Y: p2.Y / p2.W}
 
-			screenX1 := (ndcP1.X + 1) * float32(screenWidth) / 2
-			screenY1 := (1 - ndcP1.Y) * float32(screenHeight) / 2
-			screenX2 := (ndcP2.X + 1) * float32(screenWidth) / 2
-			screenY2 := (1 - ndcP2.Y) * float32(screenHeight) / 2
+			screenX1 := (ndcP1.X + 1) * float32(config.ScreenWidth) / 2
+			screenY1 := (1 - ndcP1.Y) * float32(config.ScreenHeight) / 2
+			screenX2 := (ndcP2.X + 1) * float32(config.ScreenWidth) / 2
+			screenY2 := (1 - ndcP2.Y) * float32(config.ScreenHeight) / 2
 
 			vector.StrokeLine(screen, screenX1, screenY1, screenX2, screenY2, 2, color.White, false)
 		}

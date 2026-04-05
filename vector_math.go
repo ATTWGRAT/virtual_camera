@@ -6,23 +6,7 @@ type Vector4 struct {
 	X, Y, Z, W float32
 }
 
-type Edge struct {
-	Start int
-	End   int
-}
-
-type Block struct {
-	Vertices []Vector4
-	Edges    []Edge
-}
-
 type Matrix4 [4][4]float32
-
-// Camera holds our 3D position in the world
-type Camera struct {
-	X, Y, Z          float32
-	Pitch, Yaw, Roll float64
-}
 
 func CreatePitchMatrix(a float64) Matrix4 {
 	c, s := float32(math.Cos(a)), float32(math.Sin(a))
